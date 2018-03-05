@@ -11,9 +11,12 @@ module ForemanVmwareAdvanced
 
       args[:extra_config] = {
         'bios.bootOrder'  => 'ethernet0',
-        'disk.enableUUID' => 'TRUE',
         'svga.autodetect' => 'TRUE'
       }
+
+      if args[:compute_attributes][:guest_id].start_with? 'win'
+        args[:extra_config]['disk.enableUUID'] = 'TRUE'
+      end
 
       args
     end
