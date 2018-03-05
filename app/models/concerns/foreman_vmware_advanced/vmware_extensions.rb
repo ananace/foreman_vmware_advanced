@@ -14,7 +14,9 @@ module ForemanVmwareAdvanced
         'svga.autodetect' => 'TRUE'
       }
 
-      if args[:compute_attributes][:guest_id].start_with? 'win'
+      if args[:compute_attributes] &&
+         args[:compute_attributes][:guest_id] &&
+         args[:compute_attributes][:guest_id].start_with?('win')
         args[:extra_config]['disk.enableUUID'] = 'TRUE'
       end
 
