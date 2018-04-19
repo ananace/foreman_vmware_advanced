@@ -10,7 +10,7 @@ module ForemanVmwareAdvanced
 
     config.to_prepare do
       begin
-        ::Foreman::Model::Vmware.send :include, ForemanVmwareAdvanced::VmwareExtensions
+        ::Foreman::Model::Vmware.send :prepend, ForemanVmwareAdvanced::VmwareExtensions
       rescue => e
         Rails.logger.warn "ForemanVmwareAdvanced: skipping engine hook(#{e})"
       end

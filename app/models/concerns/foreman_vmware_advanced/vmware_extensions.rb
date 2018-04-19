@@ -1,13 +1,7 @@
 module ForemanVmwareAdvanced
   module VmwareExtensions
-    extend ActiveSupport::Concern
-
-    included do
-      alias_method_chain :parse_args, :vmware_advanced
-    end
-
-    def parse_args_with_vmware_advanced(inp_args)
-      args = parse_args_without_vmware_advanced(inp_args)
+    def parse_args(inp_args)
+      args = super(inp_args)
 
       args[:extra_config] = (args[:extra_config] || {}).merge(
         'bios.bootOrder'.to_sym  => 'ethernet0',
