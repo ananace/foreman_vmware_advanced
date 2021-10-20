@@ -12,6 +12,7 @@ module ForemanVmwareAdvanced
 
       if args[:guest_id]&.start_with?('win')
         args[:extra_config]['disk.EnableUUID'.to_sym] = 'TRUE'
+        args[:extra_config]['vtpm.present'.to_sym] = 'TRUE'
       end
 
       args
