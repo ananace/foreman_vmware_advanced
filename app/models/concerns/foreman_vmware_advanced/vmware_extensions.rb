@@ -6,12 +6,11 @@ module ForemanVmwareAdvanced
       args = super(inp_args)
 
       args[:extra_config] = (args[:extra_config] || {}).merge(
-        'bios.bootOrder'.to_sym  => 'ethernet0',
+        'bios.bootOrder'.to_sym => 'ethernet0',
         'svga.autodetect'.to_sym => 'TRUE'
       )
 
-      if args[:guest_id] &&
-         args[:guest_id].start_with?('win')
+      if args[:guest_id]&.start_with?('win')
         args[:extra_config]['disk.EnableUUID'.to_sym] = 'TRUE'
       end
 
