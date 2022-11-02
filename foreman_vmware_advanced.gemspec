@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'foreman_vmware_advanced/version'
+lib = File.expand_path('lib', __dir__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'foreman_vmware_advanced/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'foreman_vmware_advanced'
