@@ -1,0 +1,101 @@
+---
+variables:
+  CI_FOREMAN_PLUGIN: foreman_vmware_advanced
+  # CI_FOREMAN_WEB: true
+
+  POSTGRES_DB: test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+services:
+  - name: postgres:13-alpine
+    alias: db
+
+image: ruby:2.7
+
+lint:
+  cache:
+    paths:
+      - vendor/ruby
+    when: always
+
+  script:
+    - gem install bundler -N
+    - bundle config set path vendor
+    - bundle install -j $(nproc) --retry=3
+    - bundle exec rubocop app/ lib/
+
+test:
+  parallel:
+    matrix:
+      - FOREMAN_VERSION:
+          # - 2.5-stable
+          - 3.0-stable
+          # - 3.1-stable
+          # - 3.2-stable
+          # - 3.3-stable
+          - 3.4-stable
+
+  cache:
+    key: foreman-$FOREMAN_VERSION
+    paths:
+      - vendor/ruby
+      - node_modules
+    when: always
+
+  variables:
+    RAILS_ENV: test
+    DATABASE_URL: postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@db/$POSTGRES_DB
+    DATABASE_CLEANER_ALLOW_REMOTE_DATABASE_URL: "true"
+
+  before_script:
+    # Set up Ruby build dependencies
+    - apt-get update -yqq
+    - apt-get install -yqq build-essential libcurl4-openssl-dev postgresql-client-13 zlib1g-dev libpq-dev
+    - apt-get install -yqq --no-install-recommends npm
+    - gem install bundler -N
+
+    # Install foreman
+    - FOREMAN_DIR="$(dirname "$CI_PROJECT_DIR")/foreman"
+    - git clone -b "$FOREMAN_VERSION" --depth=1 -- https://github.com/theforeman/foreman "$FOREMAN_DIR"
+    - cd "$FOREMAN_DIR"
+    - bundle config set path "$CI_PROJECT_DIR/vendor"
+    - bundle config set without console development ec2 gce journald libvirt openstack ovirt sqlite vmware
+    - bundle install -j $(nproc) --retry=3
+
+    # Configure database
+    - bundle exec rake db:create
+    - bundle exec rake db:migrate
+
+    # Install plugin
+    - "echo \"gem '$CI_FOREMAN_PLUGIN', path: '$CI_PROJECT_DIR'\" > bundler.d/local.rb"
+    - bundle install -j $(nproc) --retry=3
+    - bundle exec rake db:migrate
+
+    - |
+      if [ -n "$CI_FOREMAN_WEB" ]; then
+        mkdir -p "$CI_PROJECT_DIR/node_modules"
+        ln -s "$CI_PROJECT_DIR/node_modules" node_modules
+        npm install --legacy-peer-deps
+        bundle exec rake webpack:compile
+      fi
+  script:
+    # Foreman-side tasks
+    - cd "$FOREMAN_DIR"
+    - |
+      if [ -d "$CI_PROJECT_DIR/test" ]; then
+      bundle exec rake "test:$CI_FOREMAN_PLUGIN"
+      [ -d 'jenkins/reports' ] && mv jenkins/reports "$CI_PROJECT_DIR"
+      fi
+    - '[ -d "$CI_PROJECT_DIR/app/assets" ] && RAILS_ENV=production bundle exec rake "plugin:assets:precompile[$CI_FOREMAN_PLUGIN]"'
+
+    # Plugin-side tasks
+    - cd "$CI_PROJECT_DIR"
+    - gem build $CI_FOREMAN_PLUGIN.gemspec
+
+  artifacts:
+    paths:
+      - '*.gem'
+      - 'public'
+    reports:
+      junit: reports/unit/*.xml

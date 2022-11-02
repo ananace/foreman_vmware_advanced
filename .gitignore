@@ -1,4 +1,5 @@
 /.bundle/
+/vendor/
 /.yardoc
 /Gemfile.lock
 /_yardoc/
@@ -7,3 +8,5 @@
 /pkg/
 /spec/reports/
 /tmp/
+/public/
+/*.gem
