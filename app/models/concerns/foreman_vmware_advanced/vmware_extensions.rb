@@ -7,18 +7,35 @@ module ForemanVmwareAdvanced
 
       args[:extra_config] = (args[:extra_config] || {}).merge(
         'bios.bootOrder': 'ethernet0',
+        'disk.EnableUUID': 'TRUE',
         'svga.autodetect': 'TRUE'
       )
 
-      if SETTINGS[:vtpm_csr] && SETTINGS[:vtpm_crt]
-        args[:extra_config][:'vtpm.present'] = 'TRUE'
-        args[:extra_config][:'vtpm.ekCSR'] = SETTINGS[:vtpm_csr]
-        args[:extra_config][:'vtpm.ekCRT'] = SETTINGS[:vtpm_crt]
+      args
+    end
+
+    def create_vm(args = {})
+      vm = super(args)
+      return unless vm
+
+      if SETTINGS[:vtpm_add] && vm.firmware == 'efi'
+        begin
+          spec = {
+            deviceChange: [
+              {
+                operation: :add,
+                device: RbVmomi::VIM::VirtualTPM.new(key: -1)
+              }
+            ]
+          }
+
+          client.vm_reconfig_hardware 'instance_uuid' => vm.attributes[:instance_uuid], 'hardware_spec' => spec
+        rescue StandardError => e
+          logger.error "Failed to add vTPM - #{e.class}: #{e}"
+        end
       end
 
-      args[:extra_config][:'disk.EnableUUID'] = 'TRUE' if args[:guest_id]&.start_with?('win')
-
-      args
+      vm
     end
   end
 end
