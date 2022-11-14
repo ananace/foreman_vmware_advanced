@@ -15,7 +15,7 @@ module ForemanVmwareAdvanced
       return unless vm
 
       spec = {}
-      if vm.firmeware == 'efi'
+      if vm.firmware == 'efi'
         if SETTINGS[:vmware_secureboot] && args[:guest_id]&.start_with?('win')
           spec[:bootOptions] = RbVmomi::VIM::VirtualMachineBootOptions.new(efiSecureBootEnabled: true)
         end
