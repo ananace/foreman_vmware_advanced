@@ -20,7 +20,7 @@ module ForemanVmwareAdvanced
           spec[:bootOptions] = RbVmomi::VIM::VirtualMachineBootOptions.new(efiSecureBootEnabled: true)
         end
 
-        if SETTINGS[:vtpm_add]
+        if SETTINGS[:vmware_vtpm]
           spec[:deviceChange] = [
             {
               operation: :add,
