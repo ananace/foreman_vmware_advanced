@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ForemanVmwareAdvanced
   class Engine < ::Rails::Engine
     engine_name 'foreman_vmware_advanced'
@@ -9,11 +11,9 @@ module ForemanVmwareAdvanced
     end
 
     config.to_prepare do
-      begin
-        ::Foreman::Model::Vmware.send :prepend, ForemanVmwareAdvanced::VmwareExtensions
-      rescue => e
-        Rails.logger.warn "ForemanVmwareAdvanced: skipping engine hook(#{e})"
-      end
+      ::Foreman::Model::Vmware.prepend ForemanVmwareAdvanced::VmwareExtensions
+    rescue StandardError => e
+      Rails.logger.warn "ForemanVmwareAdvanced: skipping engine hook(#{e})"
     end
   end
 end
