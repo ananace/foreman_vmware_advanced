@@ -1,7 +1,7 @@
 ---
 variables:
   CI_FOREMAN_PLUGIN: $CI_PROJECT_NAME
-  CI_FOREMAN_WEB: false
+  CI_FOREMAN_WEB: 'false'
 
   POSTGRES_DB: test
   POSTGRES_USER: postgres
