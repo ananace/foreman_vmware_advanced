@@ -15,20 +15,7 @@ module ForemanVmwareAdvanced
       return unless vm
 
       spec = {}
-      if vm.firmware == 'efi'
-        if SETTINGS[:vmware_secureboot] && args[:guest_id]&.start_with?('win')
-          spec[:bootOptions] = RbVmomi::VIM::VirtualMachineBootOptions.new(efiSecureBootEnabled: true)
-        end
-
-        if SETTINGS[:vmware_vtpm]
-          spec[:deviceChange] = [
-            {
-              operation: :add,
-              device: RbVmomi::VIM::VirtualTPM.new(key: -1)
-            }
-          ]
-        end
-      end
+      spec.merge! build_efi_spec(args) if vm.firmware == 'efi'
 
       return vm if spec.empty?
 
@@ -39,6 +26,26 @@ module ForemanVmwareAdvanced
       end
 
       vm
+    end
+
+    private
+
+    def build_efi_spec(args)
+      spec = {}
+
+      spec[:bootOptions] = RbVmomi::VIM::VirtualMachineBootOptions.new(efiSecureBootEnabled: true) \
+        if SETTINGS[:vmware_secureboot] && args[:guest_id]&.start_with?('win')
+
+      if SETTINGS[:vmware_vtpm]
+        spec[:deviceChange] = [
+          {
+            operation: :add,
+            device: RbVmomi::VIM::VirtualTPM.new(key: -1)
+          }
+        ]
+      end
+
+      spec
     end
   end
 end
