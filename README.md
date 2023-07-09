@@ -33,7 +33,8 @@ In there you can configure any of the values managed by the plugin;
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/ananace/foreman_vmware_advanced
+Bug reports and pull requests are welcome on GitHub at https://github.com/ananace/foreman_vmware_advanced  
+The project lives at https://gitlab.liu.se/ITI/foreman_vmware_advanced
 
 
 ## License
